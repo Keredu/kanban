@@ -22,38 +22,3 @@ export default class KanbanAPI {
 
 
 }
-
-async function connection(){
-    const file = Bun.file('./public/js/api/conf/credentials.json');
-    const credentials =  await file.json(file);
-    const engine = postgres(`postgres://${credentials["username"]}:${credentials["password"]}@${credentials["host"]}:${credentials["port"]}/${credentials["database"]}`);
-    return engine;
-}
-
-
-function read(){
-    const json = localStorage.getItem("kanban-data");
-
-    if(!json){
-        return [
-            {
-                id:1,
-                items: []
-            },
-            {
-                id:2,
-                items: []
-            },
-            {
-                id:3,
-                items: []
-            },
-        ];
-    }
-
-    return JSON.parse(json);
-}
-
-function save(data){
-    localStorage.setItem("kanban-data", JSON.stringify(data));
-}
