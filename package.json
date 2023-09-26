@@ -1,14 +1,16 @@
 {
-  "name": "kanban",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "bun-types": "latest"
+  "name": "temp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type":"module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
+  "author": "",
+  "license": "ISC",
   "dependencies": {
+    "express": "^4.18.2",
     "postgres": "^3.3.5"
   }
 }
