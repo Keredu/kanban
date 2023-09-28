@@ -1,4 +1,11 @@
-//utils.js
+
+/**
+ * This function is used to get the request data from the request object.
+ * 
+ * @param {Body} req 
+ * 
+ * @returns {Promise} - returns a promise with the body of the request
+ */
 export function getReqData(req) {
     return new Promise((resolve, reject) => {
         try {

@@ -4,11 +4,22 @@ import { getReqData } from './utils.js';
 
 const PORT = process.env.PORT || 5000;
 
+
 const server = http.createServer(async (req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
+
+    function response(body){
+        try{
+            res.writeHead(200, headers);
+            res.end(JSON.stringify(body));
+        } catch (error) {
+            res.writeHead(404, headers);
+            res.end(JSON.stringify({ message: error }));
+        }
+    }
 
     const headers = {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
       };
 
     const cors_headers = {
@@ -17,80 +28,46 @@ const server = http.createServer(async (req, res) => {
         'Access-Control-Max-Age': 2592000,
         'Access-Control-Allow-Headers': '*'
     }
-    // /item : GET
-    if ((req.url === "/item/" || req.url === "/column/") && req.method === "GET") {
-        const mode = req.url.split("/")[1];
-        const todos = await new controller().getItems(mode);
-        res.writeHead(200, headers);
-        res.end(JSON.stringify(todos));
-    }
 
-    else if (req.url.match(/\/item\/([0-9]+)\/column/) && req.method === "GET") {
-        try {
-            const mode = req.url.split("/")[1];
-            const id = req.url.split("/")[2];
-            const todo = await new controller().getItemByColumnId(id, mode);
-            res.writeHead(200, headers);
-            res.end(JSON.stringify(todo));
-        } catch (error) {
-            res.writeHead(404, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ message: error }));
-        }
-    }
-
-    // /item/:id : GET
-    else if ((req.url.match(/\/item\/([0-9]+)/) || req.url.match(/\/column\/([0-9]+)/)) && req.method === "GET") {
-        try {
-            const mode = req.url.split("/")[1];
-            const id = req.url.split("/")[2];
-            const todo = await new controller().getItem(id, mode);
-            res.writeHead(200, headers);
-            res.end(JSON.stringify(todo));
-        } catch (error) {
-            res.writeHead(404, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ message: error }));
-        }
-    }
-
-    // /item/:id  : DELETE
-    else if (req.url.match(/\/item\/([0-9]+)/) && req.method === "DELETE") {
-        try {
-            const mode = req.url.split("/")[1];
-            const id = req.url.split("/")[2];
-            let message = await new controller().deleteItem(id, mode);
-            res.writeHead(200, headers);
-            res.end(JSON.stringify({ message }));
-        } catch (error) {
-            res.writeHead(404, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ message: error }));
-        }
-    }
     
-    else if (req.url === "/item/" && req.method === "POST") {
+    // /item : GET or /column : GET - returns all the items
+    if (req.url.match("^/(?:column|item)/$") && req.method === "GET"){
         const mode = req.url.split("/")[1];
-        let todo_data = await getReqData(req);
-        let todo = await new controller().createItem(JSON.parse(todo_data), mode);
-        let last_todo = await new controller().getLastItem(mode);
-        res.writeHead(200, headers);
-        res.end(JSON.stringify(last_todo));
-    }
-
-    // /item/:id : UPDATE
-    else if (req.url.match(/\/item\/([0-9]+)/) && req.method === "PUT") {
-        try {
-            const mode = req.url.split("/")[1];
-            const id = req.url.split("/")[2];
-            let update_data = await getReqData(req);
-            let updated_todo = await new controller().updateItem(id, JSON.parse(update_data), mode);
-            res.writeHead(200, headers);
-            res.end(JSON.stringify(updated_todo));
-        } catch (error) {
-            res.writeHead(404, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ message: error }));
-        }
-    }
-
-    else if (req.method === "OPTIONS") {
+        const sql = await new controller().getItems(mode);
+        response(sql);
+    // /item/:id : GET or /column/:id : GET - returns an item given its id
+    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "GET"){
+        const mode = req.url.split("/")[1];
+        const id = req.url.split("/")[2];
+        const sql = await new controller().getItem(id, mode);
+        response(sql);
+    // /item/:id/column : GET - returns an item given its column id
+    } else if (req.url.match("^/item/([0-9]+)/column/$") && req.method === "GET"){
+        const mode = req.url.split("/")[1];
+        const id = req.url.split("/")[2];
+        const sql = await new controller().getItemByColumnId(id, mode);
+        response(sql);
+    // /item : POST or /column : POST - creates an item
+    } else if (req.url.match("^/(?:column|item)/$") && req.method === "POST"){
+        const mode = req.url.split("/")[1];
+        const body = await getReqData(req);
+        const sql = await new controller().createItem(JSON.parse(body), mode);
+        response(sql);
+    // /item/:id : PUT or /column/:id : PUT - updates an item
+    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "PUT"){
+        const mode = req.url.split("/")[1];
+        const id = req.url.split("/")[2];
+        const body = await getReqData(req);
+        const sql = await new controller().updateItem(id, JSON.parse(body), mode);
+        response(sql);
+    // /item/:id : DELETE or /column/:id : DELETE - deletes an item
+    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "DELETE"){
+        const mode = req.url.split("/")[1];
+        const id = req.url.split("/")[2];
+        const sql = await new controller().deleteItem(id, mode);
+        response(sql);
+    // CORS OPTIONS
+    } else if (req.method === "OPTIONS"){
         try{
             res.writeHead(200, cors_headers);
             res.end();
@@ -98,14 +75,8 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(404, {});
             res.end(JSON.stringify({ message: error }));
         }
-        
-    }
-
-    // /api/todos/ : POST
-
-    // No route present
-    else {
-        res.writeHead(404, { "Content-Type": "application/json","Access-Control-Allow-Origin": "*"  });
+    } else {
+        res.writeHead(404, { "Content-Type": "application/json"});
         res.end(JSON.stringify({ message: "Route not found" }));
     }
 });
