@@ -66,7 +66,8 @@ class KanbanService{
      * 
      * @param {Item} item - the item to be created 
      * @param {String} mode - it can be "item" or "column"
-     * @returns 
+     * 
+     * @returns {Promise} - returns a promise with the result of the request
      */
     static createItem(item, mode){
         return sql`INSERT INTO ${sql(mode)} ${sql(item)}`;

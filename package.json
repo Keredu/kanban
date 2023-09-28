@@ -6,11 +6,13 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "jsdoc": "jsdoc -r ./src/ -d ./docs",
     "docs": "npm run jsdoc && http-server ./docs -p 8081"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "http-server": "^14.1.1",
     "jsdoc": "^4.0.2",
     "postgres": "^3.3.5"
   }
