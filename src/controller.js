@@ -1,4 +1,4 @@
-import KanbanService from "./service.js";
+const KanbanService = require('./service.js');
 
 /**
  * Controller class
@@ -14,7 +14,7 @@ import KanbanService from "./service.js";
  * @method deleteItem
  */
 
-export default class Controller {
+class Controller {
     
 
     /**
@@ -121,3 +121,5 @@ export default class Controller {
         return result.then((data) => data);
     }
 }
+
+module.exports = Controller;
