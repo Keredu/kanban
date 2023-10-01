@@ -1,6 +1,5 @@
-import http from 'http';
-import controller from './controller.js';
-import { getReqData } from './utils.js';
+const http = require('http');
+const controller = require('./controller.js');
 
 const PORT = process.env.PORT || 5000;
 
@@ -41,7 +40,7 @@ const server = http.createServer(async (req, res) => {
         const id = req.url.split("/")[2];
         const sql = await new controller().getItem(id, mode);
         response(sql);
-    // /item/:id/column : GET - returns an item given its column id
+    // /item/:id/column : GET - returns all item given its column id
     } else if (req.url.match("^/item/([0-9]+)/column/$") && req.method === "GET"){
         const mode = req.url.split("/")[1];
         const id = req.url.split("/")[2];
@@ -81,6 +80,24 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
+function getReqData(req) {
+    return new Promise((resolve, reject) => {
+        try {
+            let body = "";
+            req.on("data", (chunk) => {
+                body += chunk.toString();
+            });
+            req.on("end", () => {
+                resolve(body);
+            });
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 server.listen(PORT, () => {
     console.log(`server started on port: ${PORT}`);
 });
+
+module.exports = server;
