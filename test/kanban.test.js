@@ -70,23 +70,23 @@ describe('Unit test for GET an object by column id', () => {
 
 describe('POST: Unit test for create an object', () => {
     jest.spyOn(Controller.prototype, 'createItem').mockImplementation((object, mode) => {
-        object.id = 3;
-        if (mode == "item"){
-            return [object];
+        return;
+    });
+
+    jest.spyOn(Controller.prototype, 'getLastItem').mockImplementation((mode) => {
+        if(mode == "item"){
+            return [{id: 3, name: "item3", position: 3, column_id: 1}];
         } else {
-            return [object];
+            return [{id: 3, name: "column3"}];
         }
-    })
+    });
 
     it('should create an item', async () => {
-        //Mock the createItem method
-    
         const response = await request(server).post('/kanban/item/').send({name: "item3", position: 3, column_id: 1});
         expect(response.body).toEqual([{id: 3, name: "item3", position: 3, column_id: 1}]);
     });
 
     it('should create a column', async () => {
-        //Mock the createItem method
         const response = await request(server).post('/kanban/column/').send({name: "column3"});
         expect(response.body).toEqual([{id: 3, name: "column3"}]);
     });
