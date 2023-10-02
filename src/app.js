@@ -1,5 +1,6 @@
 const http = require('http');
-const controller = require('./controller.js');
+const kanbanAPI = require('./kanban.js');
+const pomodoroAPI = require('./pomodoro_placeholder.js');
 
 const PORT = process.env.PORT || 5000;
 
@@ -28,44 +29,14 @@ const server = http.createServer(async (req, res) => {
         'Access-Control-Allow-Headers': '*'
     }
 
-    
-    // /item : GET or /column : GET - returns all the items
-    if (req.url.match("^/(?:column|item)/$") && req.method === "GET"){
-        const mode = req.url.split("/")[1];
-        const sql = await new controller().getItems(mode);
-        response(sql);
-    // /item/:id : GET or /column/:id : GET - returns an item given its id
-    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "GET"){
-        const mode = req.url.split("/")[1];
-        const id = req.url.split("/")[2];
-        const sql = await new controller().getItem(id, mode);
-        response(sql);
-    // /item/:id/column : GET - returns all item given its column id
-    } else if (req.url.match("^/item/([0-9]+)/column/$") && req.method === "GET"){
-        const mode = req.url.split("/")[1];
-        const id = req.url.split("/")[2];
-        const sql = await new controller().getItemByColumnId(id, mode);
-        response(sql);
-    // /item : POST or /column : POST - creates an item
-    } else if (req.url.match("^/(?:column|item)/$") && req.method === "POST"){
-        const mode = req.url.split("/")[1];
-        const body = await getReqData(req);
-        const sql = await new controller().createItem(JSON.parse(body), mode);
-        response(sql);
-    // /item/:id : PUT or /column/:id : PUT - updates an item
-    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "PUT"){
-        const mode = req.url.split("/")[1];
-        const id = req.url.split("/")[2];
-        const body = await getReqData(req);
-        const sql = await new controller().updateItem(id, JSON.parse(body), mode);
-        response(sql);
-    // /item/:id : DELETE or /column/:id : DELETE - deletes an item
-    } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "DELETE"){
-        const mode = req.url.split("/")[1];
-        const id = req.url.split("/")[2];
-        const sql = await new controller().deleteItem(id, mode);
-        response(sql);
-    // CORS OPTIONS
+    if (req.url.match("^/kanban")){
+        req.url = req.url.replace(/^\/kanban/, '');
+        const body = await kanbanAPI(req, res);
+        return response(body);
+    } else if (req.url.match("^/pomodoro")){
+        req.url = req.url.replace(/^\/pomodoro/, '');
+        const body = await pomodoroAPI(req, res);
+        return response(body);
     } else if (req.method === "OPTIONS"){
         try{
             res.writeHead(200, cors_headers);
@@ -79,22 +50,6 @@ const server = http.createServer(async (req, res) => {
         res.end(JSON.stringify({ message: "Route not found" }));
     }
 });
-
-function getReqData(req) {
-    return new Promise((resolve, reject) => {
-        try {
-            let body = "";
-            req.on("data", (chunk) => {
-                body += chunk.toString();
-            });
-            req.on("end", () => {
-                resolve(body);
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
 
 server.listen(PORT, () => {
     console.log(`server started on port: ${PORT}`);
