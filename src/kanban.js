@@ -1,4 +1,5 @@
 const controller = require('./controller.js');
+const getReqData = require('./utils.js');
 
 async function kanbanAPI(req, res) {
     
@@ -23,7 +24,8 @@ async function kanbanAPI(req, res) {
     } else if (req.url.match("^/(?:column|item)/$") && req.method === "POST"){
         const mode = req.url.split("/")[1];
         const body = await getReqData(req);
-        const sql = await new controller().createItem(JSON.parse(body), mode);
+        const create = await new controller().createItem(JSON.parse(body), mode);
+        const sql = await new controller().getLastItem(mode);
         return sql;
     // /item/:id : PUT or /column/:id : PUT - updates an item
     } else if (req.url.match("^/(?:column|item)/([0-9]+)$") && req.method === "PUT"){
@@ -52,21 +54,5 @@ async function kanbanAPI(req, res) {
         res.end(JSON.stringify({ message: "Route not found" }));
     }
 };
-
-function getReqData(req) {
-    return new Promise((resolve, reject) => {
-        try {
-            let body = "";
-            req.on("data", (chunk) => {
-                body += chunk.toString();
-            });
-            req.on("end", () => {
-                resolve(body);
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
 
 module.exports = kanbanAPI;

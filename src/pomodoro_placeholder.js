@@ -1,4 +1,5 @@
 const controller = require('./controller.js');
+const getReqData = require('./utils.js');
 
 async function pomodoroAPI(req, res) {
     
@@ -13,21 +14,5 @@ async function pomodoroAPI(req, res) {
         res.end(JSON.stringify({ message: "Route not found" }));
     }
 };
-
-function getReqData(req) {
-    return new Promise((resolve, reject) => {
-        try {
-            let body = "";
-            req.on("data", (chunk) => {
-                body += chunk.toString();
-            });
-            req.on("end", () => {
-                resolve(body);
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
 
 module.exports = pomodoroAPI;

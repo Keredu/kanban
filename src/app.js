@@ -28,16 +28,7 @@ const server = http.createServer(async (req, res) => {
         'Access-Control-Max-Age': 2592000,
         'Access-Control-Allow-Headers': '*'
     }
-
-    if (req.url.match("^/kanban")){
-        req.url = req.url.replace(/^\/kanban/, '');
-        const body = await kanbanAPI(req, res);
-        return response(body);
-    } else if (req.url.match("^/pomodoro")){
-        req.url = req.url.replace(/^\/pomodoro/, '');
-        const body = await pomodoroAPI(req, res);
-        return response(body);
-    } else if (req.method === "OPTIONS"){
+    if (req.method === "OPTIONS"){
         try{
             res.writeHead(200, cors_headers);
             res.end();
@@ -45,6 +36,14 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(404, {});
             res.end(JSON.stringify({ message: error }));
         }
+    } else if (req.url.match("^/kanban")){
+        req.url = req.url.replace(/^\/kanban/, '');
+        const body = await kanbanAPI(req, res);
+        return response(body);
+    } else if (req.url.match("^/pomodoro")){
+        req.url = req.url.replace(/^\/pomodoro/, '');
+        const body = await pomodoroAPI(req, res);
+        return response(body);
     } else {
         res.writeHead(404, { "Content-Type": "application/json"});
         res.end(JSON.stringify({ message: "Route not found" }));
