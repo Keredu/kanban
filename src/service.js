@@ -86,6 +86,16 @@ class KanbanService{
         return sql`SELECT * FROM ${sql(mode)} ORDER BY ${sql(mode + "Id")} DESC LIMIT 1`;
     }
     
+    /**
+     * This method updates an item
+     * 
+     * @function
+     * 
+     * @param {Int} itemId - the id of the item
+     * @param {Item} newItem - the updated item
+     * @param {String} mode - it can be "item" or "column"
+     * @returns 
+     */
     static async updateItem(itemId, newItem, mode) {
         if (!('position' in newItem)) {
             return sql`UPDATE ${sql(mode)} set ${sql(newItem, Object.keys(newItem))} where ${sql(mode + "Id")} = ${itemId}`;
@@ -101,12 +111,30 @@ class KanbanService{
         return sql`UPDATE ${sql(mode)} set ${sql(newItem, Object.keys(newItem))} where ${sql(mode + "Id")} = ${itemId}`;
     }
     
+    /**
+     * This method updates the position of the items when an item is moved across columns.
+     * 
+     * @function
+     * 
+     * @param {Int} itemId - the id of the item
+     * @param {Item} newItem - the updated item
+     * @param {String} mode - it can be "item" or "column"
+     */
     static async updatePositionAcrossColumns(oldItem, newItem, mode) {
         const origin = sql`UPDATE ${sql(mode)} set ${sql("position")} = ${sql("position")} - 1 where ${sql("columnId")} = ${oldItem.columnId} and ${sql("position")} > ${oldItem.position}`;
         const destiny = sql`UPDATE ${sql(mode)} set ${sql("position")} = ${sql("position")} + 1 where ${sql("columnId")} = ${newItem.columnId} and ${sql("position")} >= ${newItem.position}`;
         await Promise.all([origin, destiny]);
     }
     
+    /**
+     * This method updates the position of the items when an item is moved within the same column.
+     * 
+     * @function
+     * 
+     * @param {Int} itemId - the id of the item
+     * @param {Item} newItem - the updated item
+     * @param {String} mode - it can be "item" or "column"
+     */
     static async updatePositionWithinSameColumn(oldItem, newItem, mode) {
         const positionShift = oldItem.position > newItem.position
             ? sql`UPDATE ${sql(mode)} set ${sql("position")} = ${sql("position")} + 1 where ${sql("columnId")} = ${oldItem.columnId} and ${sql("position")} >= ${newItem.position} and ${sql("position")} < ${oldItem.position}`
