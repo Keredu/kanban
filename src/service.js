@@ -146,6 +146,7 @@ class KanbanService{
                     return resultSql;
                 });
             });
+        return result;
     }
 }
 
