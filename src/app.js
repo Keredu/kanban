@@ -1,5 +1,4 @@
 const http = require('http');
-const controller = require('./controller.js');
 const kanbanAPI = require('./kanban.js');
 const pomodoroAPI = require('./pomodoro_placeholder.js');
 
@@ -7,34 +6,50 @@ const PORT = process.env.PORT || 5000;
 
 
 const server = http.createServer(async (req, res) => {
-    // /kanban: Check if the request is for the kanban board
+
+    function response(body){
+        try{
+            res.writeHead(200, headers);
+            res.end(JSON.stringify(body));
+        } catch (error) {
+            res.writeHead(404, headers);
+            res.end(JSON.stringify({ message: error }));
+        }
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      };
+
+    const cors_headers = {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'OPTIONS, POST, GET, PUT, DELETE',
+        'Access-Control-Max-Age': 2592000,
+        'Access-Control-Allow-Headers': '*'
+    }
+
     if (req.url.match("^/kanban")){
         req.url = req.url.replace(/^\/kanban/, '');
-        return kanbanAPI(req, res);
+        const body = await kanbanAPI(req, res);
+        return response(body);
     } else if (req.url.match("^/pomodoro")){
         req.url = req.url.replace(/^\/pomodoro/, '');
-        return pomodoroAPI(req, res);
+        const body = await pomodoroAPI(req, res);
+        return response(body);
+    } else if (req.method === "OPTIONS"){
+        try{
+            res.writeHead(200, cors_headers);
+            res.end();
+        } catch (error) {
+            res.writeHead(404, {});
+            res.end(JSON.stringify({ message: error }));
+        }
     } else {
         res.writeHead(404, { "Content-Type": "application/json"});
         res.end(JSON.stringify({ message: "Route not found" }));
     }
 });
-
-function getReqData(req) {
-    return new Promise((resolve, reject) => {
-        try {
-            let body = "";
-            req.on("data", (chunk) => {
-                body += chunk.toString();
-            });
-            req.on("end", () => {
-                resolve(body);
-            });
-        } catch (error) {
-            reject(error);
-        }
-    });
-}
 
 server.listen(PORT, () => {
     console.log(`server started on port: ${PORT}`);
